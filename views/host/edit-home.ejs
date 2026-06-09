@@ -1,0 +1,36 @@
+<%- include('../partials/head') %>
+<body>
+
+  <%- include('../partials/nav') %>
+
+  <div style="display: flex; justify-content: center; padding: 60px 16px;">
+    <div style="background: white; border: 1px solid #ddd; border-radius: 12px; padding: 40px 48px; width: 100%; max-width: 480px;">
+      <h2 style="font-size: 20px; font-weight: 500; margin-bottom: 20px; text-align: center;"><%= editing ? "Edit": "Register " %> Your Home on AirBnB</h2>
+      <form action="/host/<%= editing? "edit-home" : "add-home" %>" method="POST" enctype="multipart/form-data">
+        <input name="id" type="hidden"   value= "<%= editing? home._id: '' %>" />
+
+
+      <input type="text" name="houseName" placeholder="enter the name of your house" value= "<%= editing? home.houseName: '' %>"  
+          style="width: 100%; padding: 10px 14px; font-size: 14px; border: 1.5px solid #e03131; border-radius: 8px; outline: none; margin-bottom: 16px;" />
+
+         <input type="text" name="price" placeholder="Price per Night" value= "<%= editing? home.price: '' %>" 
+          style="width: 100%; padding: 10px 14px; font-size: 14px; border: 1.5px solid #e03131; border-radius: 8px; outline: none; margin-bottom: 16px;" />
+
+          <input type="text" name="location" placeholder="Location" value= "<%= editing? home.location: '' %>" 
+          style="width: 100%; padding: 10px 14px; font-size: 14px; border: 1.5px solid #e03131; border-radius: 8px; outline: none; margin-bottom: 16px;" />
+
+         <input type="file" name="photo"  accept = "imagejpg , image/jpeg, image/png*"
+          style="width: 100%; padding: 10px 14px; font-size: 14px; border: 1.5px solid #e03131; border-radius: 8px; outline: none; margin-bottom: 16px;" />
+
+          
+         <textarea type="text" name="description" placeholder="Describe your Home" rows="6"
+  style="width: 100%; padding: 10px 14px; font-size: 14px; border: 1.5px solid #e03131; border-radius: 8px; outline: none; margin-bottom: 16px;" ><%= editing? home.description: '' %></textarea>
+      
+        <input type="submit" value="<%= editing? "Update Home": "Add Home" %>" 
+          style="width: 100%; padding: 10px; background: #e03131; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer;" />
+      </form>
+    </div>
+  </div>
+
+</body>
+</html>

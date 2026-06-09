@@ -1,0 +1,325 @@
+<%# navbar.ejs %>
+<style>
+  .nav-link {
+    color: white;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: background 0.2s;
+  }
+  .nav-link:hover { background: rgba(255,255,255,0.2); }
+  .nav-link.active { background: rgba(0,0,0,0.2); }
+
+  .login-btn {
+    color: #e03131;
+    background: white;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 6px 16px;
+    border-radius: 6px;
+    transition: opacity 0.2s;
+  }
+  .login-btn:hover { opacity: 0.85; }
+
+  /* ── Burger button ── */
+  .burger-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 7px;
+    background: rgba(255,255,255,0.15);
+    border: 1.5px solid rgba(255,255,255,0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .burger-btn:hover { background: rgba(255,255,255,0.25); }
+  .burger-line {
+    width: 16px;
+    height: 2px;
+    background: white;
+    border-radius: 2px;
+    transition: transform 0.25s ease, opacity 0.2s ease;
+    transform-origin: center;
+  }
+  .burger-btn.open .burger-line:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .burger-btn.open .burger-line:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  .burger-btn.open .burger-line:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+  /* ── Avatar ── */
+  .nav-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: white;
+    color: #e03131;
+    font-size: 15px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 2px solid rgba(255,255,255,0.5);
+  }
+
+  /* ── Drawer ── */
+  .nav-drawer-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 998;
+  }
+  .nav-drawer-overlay.open { display: block; }
+
+  .nav-drawer {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 240px;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.18);
+    z-index: 999;
+    overflow: hidden;
+    animation: drawerIn 0.2s ease;
+  }
+  .nav-drawer.open { display: block; }
+
+  @keyframes drawerIn {
+    from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .drawer-user {
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .drawer-user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #fce8e8;
+    color: #a32d2d;
+    font-size: 16px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .drawer-user-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 2px;
+  }
+  .drawer-user-email {
+    font-size: 11px;
+    color: #999;
+    margin: 0;
+  }
+
+  .drawer-section-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #bbb;
+    padding: 10px 16px 4px;
+  }
+
+  .drawer-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 16px;
+    font-size: 13.5px;
+    color: #2a2a2a;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .drawer-link:hover { background: #fafafa; }
+  .drawer-link i {
+    font-size: 16px;
+    color: #999;
+    width: 18px;
+    flex-shrink: 0;
+  }
+  .drawer-link .req-badge {
+    margin-left: auto;
+    background: #e03131;
+    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    border-radius: 20px;
+    padding: 2px 7px;
+    line-height: 1.4;
+  }
+
+  .drawer-divider { height: 1px; background: #f0f0f0; margin: 4px 0; }
+
+  .drawer-logout-form { margin: 0; }
+  .drawer-logout-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    font-size: 13.5px;
+    color: #e03131;
+    font-weight: 600;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s;
+  }
+  .drawer-logout-btn:hover { background: #fff5f5; }
+  .drawer-logout-btn i { font-size: 16px; }
+
+  /* ── Wrapper for positioning ── */
+  .nav-right-group {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+  }
+</style>
+
+<nav style="background: #e03131; padding: 12px 24px; display: flex; gap: 16px; align-items: center; position: relative;">
+
+  <a href="/" style="color:white; text-decoration:none; font-size:17px; font-weight:800; letter-spacing:-0.5px;">airbnb</a>
+
+  <% if (!isLoggedIn) { %>
+    <div style="margin-left:auto; display:flex; gap:10px;">
+      <a href="/signup" class="login-btn">Sign Up</a>
+      <a href="/login" class="login-btn">Login</a>
+    </div>
+  <% } %>
+
+  <% if (isLoggedIn) { %>
+    <div class="nav-right-group" id="navRightGroup">
+
+      <!-- Avatar (just visual, no dropdown now) -->
+      <div class="nav-avatar">
+        <%= user.firstName ? user.firstName.charAt(0).toUpperCase() : '?' %>
+      </div>
+
+      <!-- Burger Button -->
+      <button class="burger-btn" id="burgerBtn" aria-label="Toggle menu" aria-expanded="false">
+        <div class="burger-line"></div>
+        <div class="burger-line"></div>
+        <div class="burger-line"></div>
+      </button>
+
+      <!-- Drawer -->
+      <div class="nav-drawer" id="navDrawer">
+
+        <!-- User Info -->
+        <div class="drawer-user">
+          <div class="drawer-user-avatar">
+            <%= user.firstName ? user.firstName.charAt(0).toUpperCase() : '?' %>
+          </div>
+          <div>
+            <p class="drawer-user-name"><%= user.firstName %> <%= user.lastName || '' %></p>
+            <p class="drawer-user-email"><%= user.email %></p>
+          </div>
+        </div>
+
+        <% if (user.userType === 'host') { %>
+          <!-- Host section -->
+          <p class="drawer-section-label">Host</p>
+          <a href="/host/dashboard" class="drawer-link">
+            <i class="ti ti-layout-dashboard" aria-hidden="true"></i> Dashboard
+          </a>
+          <a href="/host/host-home-list" class="drawer-link">
+            <i class="ti ti-building" aria-hidden="true"></i> My homes
+          </a>
+          <a href="/host/add-home" class="drawer-link">
+            <i class="ti ti-plus" aria-hidden="true"></i> Add home
+          </a>
+          <a href="/host/booking-requests" class="drawer-link">
+            <i class="ti ti-inbox" aria-hidden="true"></i> Requests
+            <% if (locals.pendingCount > 0) { %>
+              <span class="req-badge"><%= locals.pendingCount %></span>
+            <% } %>
+          </a>
+          <div class="drawer-divider"></div>
+          <p class="drawer-section-label">Guest</p>
+        <% } %>
+
+        <% if (user.userType === 'guest') { %>
+          <p class="drawer-section-label">Guest</p>
+          <a href="/host/add-home" class="drawer-link">
+            <i class="ti ti-home-plus" aria-hidden="true"></i> Become a host
+          </a>
+        <% } %>
+
+        <a href="/homes" class="drawer-link">
+          <i class="ti ti-search" aria-hidden="true"></i> Browse homes
+        </a>
+        <a href="/favourites" class="drawer-link">
+          <i class="ti ti-heart" aria-hidden="true"></i> Favourites
+        </a>
+        <a href="/bookings" class="drawer-link">
+          <i class="ti ti-calendar" aria-hidden="true"></i> My bookings
+        </a>
+
+        <div class="drawer-divider"></div>
+
+        <form action="/logout" method="POST" class="drawer-logout-form">
+          <button type="submit" class="drawer-logout-btn">
+            <i class="ti ti-logout"></i> Logout
+          </button>
+        </form>
+
+      </div><!-- /drawer -->
+    </div><!-- /nav-right-group -->
+
+    <!-- Overlay to close on outside click -->
+    <div class="nav-drawer-overlay" id="drawerOverlay"></div>
+  <% } %>
+
+</nav>
+
+<!-- Tabler Icons CDN -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
+<script>
+  const burgerBtn  = document.getElementById('burgerBtn');
+  const navDrawer  = document.getElementById('navDrawer');
+  const overlay    = document.getElementById('drawerOverlay');
+
+  function openDrawer() {
+    burgerBtn.classList.add('open');
+    navDrawer.classList.add('open');
+    overlay.classList.add('open');
+    burgerBtn.setAttribute('aria-expanded', 'true');
+  }
+  function closeDrawer() {
+    burgerBtn.classList.remove('open');
+    navDrawer.classList.remove('open');
+    overlay.classList.remove('open');
+    burgerBtn.setAttribute('aria-expanded', 'false');
+  }
+
+  if (burgerBtn) {
+    burgerBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      navDrawer.classList.contains('open') ? closeDrawer() : openDrawer();
+    });
+    overlay.addEventListener('click', closeDrawer);
+  }
+</script>

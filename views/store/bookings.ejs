@@ -1,0 +1,154 @@
+<%- include('../partials/head') %>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; min-height: 100vh; }
+
+  .wrapper { max-width: 800px; margin: 48px auto; padding: 0 20px; }
+
+  h1 { font-size: 24px; font-weight: 700; color: #1a1a1a; margin-bottom: 24px; }
+
+  .empty {
+    background: white;
+    border-radius: 16px;
+    padding: 60px 36px;
+    text-align: center;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+  }
+  .empty .icon { font-size: 52px; margin-bottom: 16px; }
+  .empty h3 { font-size: 18px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; }
+  .empty p { font-size: 14px; color: #888; margin-bottom: 24px; }
+  .empty a {
+    display: inline-block;
+    padding: 11px 28px;
+    background: #e03131;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .booking-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .booking-card img {
+    width: 110px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 12px;
+    flex-shrink: 0;
+  }
+
+  .booking-info { flex: 1; }
+  .booking-info h3 { font-size: 17px; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; }
+  .booking-info p { font-size: 13px; color: #777; margin-bottom: 4px; }
+
+  .booking-right { text-align: right; flex-shrink: 0; }
+  .booking-right .price { font-size: 20px; font-weight: 800; color: #e03131; margin-bottom: 8px; }
+
+  .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .badge.confirmed { background: #d3f9d8; color: #2f9e44; }
+  .badge.pending { background: #fff3bf; color: #e67700; }
+  .badge.rejected { background: #ffe3e3; color: #e03131; }
+
+  .cancel-btn {
+    margin-top: 10px;
+    padding: 6px 14px;
+    background: white;
+    color: #e03131;
+    border: 1.5px solid #e03131;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+  }
+  .cancel-btn:hover { background: #fff0f0; }
+</style>
+</head>
+<body>
+
+<%- include('../partials/nav') %>
+
+<div class="wrapper">
+  <h1>My Bookings</h1>
+
+  <% if(bookings.length === 0) { %>
+    <div class="empty">
+      <div class="icon">🏠</div>
+      <h3>No bookings yet</h3>
+      <p>Explore homes and book your perfect stay!</p>
+      <a href="/homes">Browse Homes</a>
+    </div>
+
+  <% } else { %>
+    <% bookings.forEach(booking => { %>
+
+      <% if(booking.homeId) { %>
+        <div class="booking-card">
+
+          <img src="/<%= booking.homeId.photo.replace(/\\/g, '/') %>" alt="<%= booking.homeId.houseName %>" />
+
+          <div class="booking-info">
+            <h3><%= booking.homeId.houseName %></h3>
+            <p>📍 <%= booking.homeId.location %></p>
+            <p>📅 Check-In: <strong><%= new Date(booking.checkIn).toDateString() %></strong></p>
+            <p>📅 Check-Out: <strong><%= new Date(booking.checkOut).toDateString() %></strong></p>
+          </div>
+
+          <div class="booking-right">
+            <p class="price">₹<%= booking.totalPrice.toLocaleString('en-IN') %></p>
+
+            <span class="badge <%= booking.status %>">
+              <% if(booking.status === 'confirmed') { %> ✅ Confirmed
+              <% } else if(booking.status === 'rejected') { %> ❌ Rejected by Host
+              <% } else { %> ⏳ Pending Approval
+              <% } %>
+            </span>
+
+            <% if(booking.status === 'pending') { %>
+              <form action="/booking/cancel/<%= booking._id %>" method="POST">
+                <button type="submit" class="cancel-btn">❌ Cancel</button>
+              </form>
+            <% } %>
+          </div>
+
+        </div>
+
+      <% } else { %>
+        <div class="booking-card">
+          <div class="booking-info">
+            <h3>🏠 Home No Longer Available</h3>
+            <p>This property has been removed by the host.</p>
+            <p>📅 Check-In: <strong><%= new Date(booking.checkIn).toDateString() %></strong></p>
+            <p>📅 Check-Out: <strong><%= new Date(booking.checkOut).toDateString() %></strong></p>
+          </div>
+          <div class="booking-right">
+            <p class="price">₹<%= booking.totalPrice.toLocaleString('en-IN') %></p>
+            <span class="badge rejected">❌ Home Deleted</span>
+          </div>
+        </div>
+      <% } %>
+
+    <% }) %>
+  <% } %>
+
+</div>
+
+</body>
+</html>

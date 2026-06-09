@@ -1,0 +1,9 @@
+  <% if (typeof errorMessages !== 'undefined' && errorMessages && errorMessages.length > 0) { %>
+          <div style="background: #fff5f5; border: 1.5px solid #ffa8a8; color: #c92a2a; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px;">
+            <ul style="list-style: disc; padding-left: 18px;">
+              <% errorMessages.forEach(error => { %>
+                <li style="font-size: 13px; margin-bottom: 4px;"><%= error %></li>
+              <% }); %>
+            </ul>
+          </div>
+        <% } %>

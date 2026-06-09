@@ -1,0 +1,109 @@
+<%- include('../partials/head') %>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; min-height: 100vh; }
+
+  .wrapper { max-width: 520px; margin: 48px auto; padding: 0 20px; }
+
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 36px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.09);
+    text-align: center;
+  }
+
+  h2 { font-size: 22px; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; }
+  .subtitle { font-size: 14px; color: #888; margin-bottom: 28px; }
+
+  .booking-info {
+    background: #f9f9f9;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 24px;
+    text-align: left;
+  }
+  .booking-info p { font-size: 14px; color: #555; margin-bottom: 8px; }
+  .booking-info p:last-child { margin-bottom: 0; }
+  .booking-info span { font-weight: 700; color: #1a1a1a; }
+
+  .total-amount {
+    font-size: 28px;
+    font-weight: 800;
+    color: #e03131;
+    margin-bottom: 6px;
+  }
+  .total-label { font-size: 13px; color: #aaa; margin-bottom: 28px; }
+
+  .qr-box {
+    background: #f9f9f9;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    display: inline-block;
+  }
+
+  .qr-box img { width: 180px; height: 180px; }
+  .qr-label { font-size: 12px; color: #aaa; margin-top: 10px; }
+
+  .paid-btn {
+    width: 100%;
+    padding: 14px;
+    background: #2f9e44;
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-bottom: 12px;
+  }
+  .paid-btn:hover { background: #276535; }
+
+  .cancel-link {
+    display: block;
+    font-size: 13px;
+    color: #aaa;
+    text-decoration: none;
+    margin-top: 8px;
+  }
+  .cancel-link:hover { color: #e03131; }
+</style>
+</head>
+<body>
+<%- include('../partials/nav') %>
+
+<div class="wrapper">
+  <div class="card">
+
+    <h2>Complete Your Payment</h2>
+    <p class="subtitle">Scan the QR code and pay the amount below</p>
+
+    <div class="booking-info">
+      <p>🏠 <span><%= home.houseName %></span></p>
+      <p>📍 <span><%= home.location %></span></p>
+      <p>📅 Check-In: <span><%= new Date(booking.checkIn).toDateString() %></span></p>
+      <p>📅 Check-Out: <span><%= new Date(booking.checkOut).toDateString() %></span></p>
+    </div>
+
+    <p class="total-amount">₹<%= booking.totalPrice.toLocaleString('en-IN') %></p>
+    <p class="total-label">Total Amount to Pay</p>
+
+    <!-- Dummy QR Code -->
+    <div class="qr-box">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=AirbnbPayment-<%=booking._id%>" alt="QR Code" />
+      <p class="qr-label">Scan with any UPI app</p>
+    </div>
+
+    <form action="/booking/confirm/<%= booking._id %>" method="POST">
+      <button type="submit" class="paid-btn">✅ I Have Paid</button>
+    </form>
+
+    <a href="/homes" class="cancel-link">Cancel & go back</a>
+
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,254 @@
+<%- include('../partials/head') %>
+<style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .login-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 16px;
+    }
+
+    .login-card {
+      background: white;
+      border-radius: 16px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+    }
+
+    .login-logo {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .login-logo span {
+      font-size: 28px;
+      font-weight: 700;
+      color: #e03131;
+    }
+
+    .login-card h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 6px;
+    }
+
+    .login-card p {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 28px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 14px;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 8px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #1a1a1a;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    .form-group input:focus {
+      border-color: #e03131;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 13px;
+      background: #e03131;
+      color: white;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.2s;
+    }
+
+    .submit-btn:hover {
+      background: #c92a2a;
+    }
+
+    .login-link {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 13px;
+      color: #888;
+    }
+
+    .login-link a {
+      color: #e03131;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .login-link a:hover {
+      text-decoration: underline;
+    }
+</style>
+</head>
+<body>
+
+  <%- include('../partials/nav') %>
+
+  <div class="login-wrapper">
+    <div class="login-card">
+
+      <div class="login-logo">
+        <span>airbnb</span>
+      </div>
+
+      <h2>Create account</h2>
+      <p>Sign up to get started</p>
+
+      <form action="/signup" method="POST">
+
+        <%- include('../partials/errors') %>
+      
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="firstName">First Name</label>
+           
+            <input 
+              type="text" 
+              id="firstName" 
+              name="firstName" 
+              placeholder="John"
+              value="<%= typeof oldInput !== 'undefined' ? oldInput.firstName : '' %>"
+              required 
+            />
+          </div>
+          <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <input 
+              type="text" 
+              id="lastName" 
+              name="lastName" 
+              placeholder="Doe"
+              value="<%= typeof oldInput !== 'undefined' ? oldInput.lastName : '' %>"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>I want to join as</label>
+          <div style="display: flex; gap: 16px; margin-top: 8px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 400; color: #1a1a1a;">
+              <input type="radio" name="userType" value="guest"
+                <%= typeof oldInput !== 'undefined' && oldInput.userType === 'guest' ? 'checked' : '' %>
+                style="accent-color: #e03131; width: 16px; height: 16px;" />
+              Guest
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 400; color: #1a1a1a;">
+              <input type="radio" name="userType" value="host"
+                <%= typeof oldInput !== 'undefined' && oldInput.userType === 'host' ? 'checked' : '' %>
+                style="accent-color: #e03131; width: 16px; height: 16px;" />
+              Host
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            placeholder="you@example.com"
+            value="<%= typeof oldInput !== 'undefined' ? oldInput.email : '' %>"
+            required 
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            placeholder="Create a password" 
+            required 
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password</label>
+          <input 
+            type="password" 
+            id="confirmPassword" 
+            name="confirmPassword" 
+            placeholder="Repeat your password" 
+            required 
+          />
+        </div>
+
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-weight: 400; color: #444;">
+            <input 
+              type="checkbox" 
+              name="terms" 
+              required
+              style="accent-color: #e03131; width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0;"
+            />
+            <span style="font-size: 13px; line-height: 1.5;">
+              I agree to the 
+              <a href="/terms" style="color: #e03131; font-weight: 600; text-decoration: none;">Terms & Conditions</a> 
+              and 
+              <a href="/privacy" style="color: #e03131; font-weight: 600; text-decoration: none;">Privacy Policy</a>
+            </span>
+          </label>
+        </div>
+
+        <button type="submit" class="submit-btn">Sign Up</button>
+      </form>
+
+      <div class="login-link">
+        Already have an account? <a href="/login">Login</a>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>
