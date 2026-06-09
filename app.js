@@ -1,6 +1,5 @@
 require('dotenv').config();
 
-//core module
 const path = require('path');
 const rootDir = require("./utils/pathUtil");
 const session = require('express-session');
@@ -8,13 +7,13 @@ const MongoStore = require('connect-mongo').default;
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
-//external module
 const express = require('express');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
-//local module
 const storeRouter = require("./routes/storeRouter");
 const hostRouter = require("./routes/hostRouter");
 const authRouter = require('./routes/authRouter');
@@ -26,26 +25,22 @@ const bookingRouter = require('./routes/bookingRouter');
 
 const DB_PATH = process.env.MONGO_URL;
 
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
 const app = express();
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
-const randomString = (length) => {
-  const characters = 'abcdefghijklmnopqrstuvwxyz';
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return result;
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, randomString(10) + '-' + file.originalname);
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'airbnb-clone',
+    allowed_formats: ['jpg', 'jpeg', 'png'],
   }
 });
 
@@ -62,9 +57,6 @@ const multerOptions = { storage, fileFilter }
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(multer(multerOptions).single('photo'));
-app.use("/uploads", express.static(path.join(rootDir, 'uploads')));
-app.use("/host/uploads", express.static(path.join(rootDir, 'uploads')));
-app.use("homes/uploads", express.static(path.join(rootDir, 'uploads')));
 
 app.use(session({
   secret: process.env.SESSION_SECRET,
@@ -80,7 +72,6 @@ app.use(cookieParser());
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Google Strategy
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -88,10 +79,7 @@ passport.use(new GoogleStrategy({
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     let user = await User.findOne({ googleId: profile.id });
-
-    if (user) {
-      return done(null, user);
-    }
+    if (user) return done(null, user);
 
     user = await User.create({
       googleId: profile.id,
@@ -99,7 +87,6 @@ passport.use(new GoogleStrategy({
       email: profile.emails[0].value,
       roleSelected: false
     });
-
     return done(null, user);
   } catch (err) {
     return done(err, null);
@@ -119,7 +106,6 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
-// Pending count middleware — har request pe update hoga
 app.use(async (req, res, next) => {
   req.isLoggedIn = req.session.isLoggedIn || req.isAuthenticated();
 
@@ -145,7 +131,6 @@ app.use(async (req, res, next) => {
 app.use(authRouter);
 app.use(storeRouter);
 
-// Google OAuth Routes
 app.get('/auth/google',
   passport.authenticate('google', { scope: ['profile', 'email'] })
 );
