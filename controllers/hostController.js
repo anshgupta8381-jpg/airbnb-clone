@@ -56,31 +56,36 @@ exports.getHostHomes = (req, res, next) => {
   });
 }
 
-exports.postaddhome = (req, res, next) => {
-  const { houseName, price, location, description } = req.body;
+exports.postaddhome = async (req, res, next) => {
+  try {
+    console.log("BODY:", req.body);
+    console.log("FILE:", req.file);
 
-  if (!req.file) {
-    return res.status(422).send("No image provided");
-  }
+    const { houseName, price, location, description } = req.body;
 
-  const photo = req.file.path;
+    if (!req.file) {
+      return res.status(422).send("No image provided");
+    }
 
-  const home = new Home({
-    houseName,
-    price,
-    location,
-    photo,
-    description,
-    userId: req.session.user._id  // NEW - host ka id save karo
-  });
+    const home = new Home({
+      houseName,
+      price,
+      location,
+      photo: req.file.path,
+      description,
+      userId: req.session.user._id
+    });
 
-  home.save().then(() => {
-    console.log('Home saved successfully');
+    await home.save();
+
+    console.log("Home saved successfully");
     res.redirect("/host/host-home-list");
-  }).catch(err => {
-    console.log('Error saving home', err);
-  });
-}
+
+  } catch (err) {
+    console.error("POST ADD HOME ERROR:", err);
+    res.status(500).send(err.message);
+  }
+};
 
 exports.postEditHome = (req, res, next) => {
   const { id, houseName, price, location, description } = req.body;
