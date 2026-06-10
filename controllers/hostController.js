@@ -1,35 +1,28 @@
 const Home = require('../models/home');
-const User = require('../models/user'); 
-const fs = require('fs');
+const User = require('../models/user');
 const Booking = require('../models/booking');
 const { cloudinary } = require('../utils/cloudinary');
 
-
 exports.getaddhome = (req, res, next) => {
-  // Agar guest hai toh become-host page pe bhejo
   if (req.session.user.userType === 'guest') {
     return res.redirect('/host/become-host');
   }
-
   res.render('host/edit-home', {
     pageTitle: 'addHome',
     currentPath: '/host/add-home',
     editing: false,
     isLoggedIn: req.isLoggedIn,
-    user: req.session.user
+    user: req.session.user,
+    errorMessage: null
   });
 }
 
 exports.getEditHome = (req, res, next) => {
   const homeId = req.params.homeId;
-  const editing = req.query.editing === 'true';
 
   Home.findById(homeId).then(home => {
-    if (!home) {
-      return res.redirect("/host/host-home-list");
-    }
+    if (!home) return res.redirect("/host/host-home-list");
 
-    // Sirf apna ghar edit kar sakta hai
     if (home.userId.toString() !== req.session.user._id.toString()) {
       return res.redirect("/host/host-home-list");
     }
@@ -41,12 +34,12 @@ exports.getEditHome = (req, res, next) => {
       editing: 'editing',
       isLoggedIn: req.isLoggedIn,
       user: req.session.user,
+      errorMessage: null
     });
-  })
+  });
 }
 
 exports.getHostHomes = (req, res, next) => {
-  // Sirf apni homes fetch karo
   Home.find({ userId: req.session.user._id }).then(registeredHomes => {
     res.render('host/host-home-list', {
       registeredHomes: registeredHomes,
@@ -54,22 +47,23 @@ exports.getHostHomes = (req, res, next) => {
       currentPath: '/host-home',
       isLoggedIn: req.isLoggedIn,
       user: req.session.user,
-    })
+    });
   });
 }
 
 exports.postaddhome = async (req, res, next) => {
-  console.log("POST ADD HOME HIT");
-console.log("BODY:", req.body);
-console.log("FILE:", req.file);
   try {
-    console.log("BODY:", req.body);
-    console.log("FILE:", req.file);
-
     const { houseName, price, location, description } = req.body;
 
     if (!req.file) {
-      return res.status(422).send("No image provided");
+      return res.render('host/edit-home', {
+        pageTitle: 'Add Home',
+        currentPath: '/host/add-home',
+        editing: false,
+        isLoggedIn: req.isLoggedIn,
+        user: req.session.user,
+        errorMessage: 'Please upload an image in JPG, JPEG, or PNG format only.'
+      });
     }
 
     const home = new Home({
@@ -82,8 +76,6 @@ console.log("FILE:", req.file);
     });
 
     await home.save();
-
-    console.log("Home saved successfully");
     res.redirect("/host/host-home-list");
 
   } catch (err) {
@@ -92,15 +84,20 @@ console.log("FILE:", req.file);
   }
 };
 
-exports.postEditHome = (req, res, next) => {
-  const { id, houseName, price, location, description } = req.body;
+exports.postEditHome = async (req, res, next) => {
+  try {
+    const { id, houseName, price, location, description } = req.body;
 
-  Home.findById(id).then((home) => {
+    const home = await Home.findById(id);
     if (!home) return res.redirect('/host/host-home-list');
 
-    // Sirf apna ghar edit kar sakta hai
     if (home.userId.toString() !== req.session.user._id.toString()) {
       return res.redirect('/host/host-home-list');
+    }
+
+    // Wrong format check — file choose ki but rejected hui fileFilter se
+    if (req.body.photo === '' && !req.file && req.headers['content-type']?.includes('multipart')) {
+      // koi file upload attempt hua lekin reject hua
     }
 
     home.houseName = houseName;
@@ -108,18 +105,17 @@ exports.postEditHome = (req, res, next) => {
     home.location = location;
     home.description = description;
 
-    // ✅ Yeh lagaa
-        if (req.file) {
-          home.photo = req.file.path;
-        }
+    if (req.file) {
+      home.photo = req.file.path;
+    }
 
-    return home.save();
-  }).then((result) => {
-    console.log("Home updated", result);
+    await home.save();
     res.redirect('/host/host-home-list');
-  }).catch((err) => {
+
+  } catch (err) {
     console.log("Error:", err);
-  });
+    res.status(500).send(err.message);
+  }
 };
 
 exports.postDeleteHome = async (req, res, next) => {
@@ -150,7 +146,6 @@ exports.postDeleteHome = async (req, res, next) => {
       });
     }
 
-    // Cloudinary se image delete karo
     if (home.photo) {
       const publicId = home.photo.split('/').pop().split('.')[0];
       await cloudinary.uploader.destroy(`airbnb-clone/${publicId}`);
@@ -181,7 +176,6 @@ exports.postBecomeHost = async (req, res, next) => {
       { userType: 'host' },
       { new: true }
     );
-
     req.session.user = user;
     await req.session.save();
     res.redirect('/host/add-home');
@@ -194,35 +188,20 @@ exports.postBecomeHost = async (req, res, next) => {
 exports.getDashboard = async (req, res, next) => {
   try {
     const hostId = req.session.user._id;
-
-    // Host ki homes
     const homes = await Home.find({ userId: hostId });
-
     const homeIds = homes.map(home => home._id);
 
-    // Bookings
-    const bookings = await Booking.find({
-      homeId: { $in: homeIds }
-    })
+    const bookings = await Booking.find({ homeId: { $in: homeIds } })
       .populate('homeId')
       .populate('userId')
       .sort({ createdAt: -1 });
 
-    const pendingCount = bookings.filter(
-      booking => booking.status === 'pending'
-    ).length;
-
-    const confirmedCount = bookings.filter(
-      booking => booking.status === 'confirmed'
-    ).length;
-
-    const rejectedCount = bookings.filter(
-      booking => booking.status === 'rejected'
-    ).length;
-
+    const pendingCount = bookings.filter(b => b.status === 'pending').length;
+    const confirmedCount = bookings.filter(b => b.status === 'confirmed').length;
+    const rejectedCount = bookings.filter(b => b.status === 'rejected').length;
     const totalEarnings = bookings
-      .filter(booking => booking.status === 'confirmed')
-      .reduce((sum, booking) => sum + booking.totalPrice, 0);
+      .filter(b => b.status === 'confirmed')
+      .reduce((sum, b) => sum + b.totalPrice, 0);
 
     const recentBookings = bookings.slice(0, 5);
 
@@ -231,7 +210,6 @@ exports.getDashboard = async (req, res, next) => {
       currentPath: '/host/dashboard',
       isLoggedIn: req.isLoggedIn,
       user: req.session.user,
-
       totalHomes: homes.length,
       pendingCount,
       confirmedCount,
