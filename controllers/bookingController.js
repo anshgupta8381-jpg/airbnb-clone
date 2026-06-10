@@ -113,27 +113,6 @@ exports.getConfirmPage = async (req, res, next) => {
   }
 }
 
-// "I have Paid" button — booking confirm karo
-exports.postConfirmPayment = async (req, res, next) => {
-  try {
-    const booking = await Booking.findById(req.params.bookingId);
-    if (!booking) return res.redirect('/homes');
-
-    // Sirf apni booking confirm kar sakta hai
-    if (booking.userId.toString() !== req.session.user._id.toString()) {
-      return res.redirect('/homes');
-    }
-
-    booking.status = 'confirmed';
-    await booking.save();
-
-    res.redirect('/bookings');
-  } catch (err) {
-    console.log(err);
-    res.redirect('/homes');
-  }
-}
-
 exports.postConfirmPayment = async (req, res, next) => {
   try {
     const booking = await Booking.findById(req.params.bookingId);
@@ -143,16 +122,17 @@ exports.postConfirmPayment = async (req, res, next) => {
       return res.redirect('/homes');
     }
 
-    // Confirmed nahi, sirf pending rakho — host accept karega
+    // Payment done but still pending for host approval
     booking.status = 'pending';
     await booking.save();
 
     res.redirect('/bookings');
+
   } catch (err) {
     console.log(err);
     res.redirect('/homes');
   }
-}
+};
 
 exports.postCancelBooking = async (req, res, next) => {
   try {

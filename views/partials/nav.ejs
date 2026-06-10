@@ -273,9 +273,13 @@
         <a href="/favourites" class="drawer-link">
           <i class="ti ti-heart" aria-hidden="true"></i> Favourites
         </a>
-        <a href="/bookings" class="drawer-link">
-          <i class="ti ti-calendar" aria-hidden="true"></i> My bookings
-        </a>
+       <a href="/bookings" class="drawer-link">
+            <i class="ti ti-calendar"></i> My bookings
+
+            <% if (user.userType === 'guest' && locals.bookingUpdateCount > 0) { %>
+            <span class="req-badge"><%= locals.bookingUpdateCount %></span>
+      <% } %>
+</a>
 
         <div class="drawer-divider"></div>
 
