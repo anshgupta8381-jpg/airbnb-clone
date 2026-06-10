@@ -13,18 +13,13 @@ process.on('unhandledRejection', (err) => {
 require('dotenv').config();
 
 const path = require('path');
-const rootDir = require("./utils/pathUtil");
 const session = require('express-session');
 const MongoStore = require('connect-mongo').default;
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-
 const express = require('express');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
-const multer = require('multer');
-const cloudinary = require('cloudinary');
-const CloudinaryStorage = require('multer-storage-cloudinary');
 
 const storeRouter = require("./routes/storeRouter");
 const hostRouter = require("./routes/hostRouter");
@@ -37,38 +32,13 @@ const bookingRouter = require('./routes/bookingRouter');
 
 const DB_PATH = process.env.MONGO_URL;
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
-});
-
 const app = express();
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: 'airbnb-clone',
-    allowed_formats: ['jpg', 'jpeg', 'png'],
-  }
-});
-
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
-    cb(null, true);
-  } else {
-    cb(null, false);
-  }
-}
-
-const multerOptions = { storage, fileFilter }
-
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(multer(multerOptions).single('photo'));
 
 app.use(session({
   secret: process.env.SESSION_SECRET,
@@ -92,7 +62,6 @@ passport.use(new GoogleStrategy({
   try {
     let user = await User.findOne({ googleId: profile.id });
     if (user) return done(null, user);
-
     user = await User.create({
       googleId: profile.id,
       firstName: profile.displayName,
@@ -118,33 +87,27 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
-app.use((req, res, next) => {
-  req.isLoggedIn = req.session?.isLoggedIn || false;
-  res.locals.pendingCount = 0;
+app.use(async (req, res, next) => {
+  req.isLoggedIn = req.session?.isLoggedIn || req.isAuthenticated();
+
+  if (req.session?.user?.userType === 'host') {
+    try {
+      const hostHomes = await Home.find({ userId: req.session.user._id });
+      const homeIds = hostHomes.map(h => h._id);
+      const pendingCount = await Booking.countDocuments({
+        homeId: { $in: homeIds },
+        status: 'pending'
+      });
+      res.locals.pendingCount = pendingCount;
+    } catch (err) {
+      res.locals.pendingCount = 0;
+    }
+  } else {
+    res.locals.pendingCount = 0;
+  }
+
   next();
 });
-
-// app.use(async (req, res, next) => {
-//   req.isLoggedIn = req.session.isLoggedIn || req.isAuthenticated();
-
-//   if (req.session.user && req.session.user.userType === 'host') {
-//     try {
-//       const hostHomes = await Home.find({ userId: req.session.user._id });
-//       const homeIds = hostHomes.map(h => h._id);
-//       const pendingCount = await Booking.countDocuments({
-//         homeId: { $in: homeIds },
-//         status: 'pending'
-//       });
-//       res.locals.pendingCount = pendingCount;
-//     } catch (err) {
-//       res.locals.pendingCount = 0;
-//     }
-//   } else {
-//     res.locals.pendingCount = 0;
-//   }
-
-//   next();
-// });
 
 app.use(authRouter);
 app.use(storeRouter);
