@@ -2,6 +2,8 @@ const Home = require('../models/home');
 const User = require('../models/user'); 
 const fs = require('fs');
 const Booking = require('../models/booking');
+const { cloudinary } = require('../utils/cloudinary');
+
 
 exports.getaddhome = (req, res, next) => {
   // Agar guest hai toh become-host page pe bhejo
@@ -127,19 +129,16 @@ exports.postDeleteHome = async (req, res, next) => {
     const home = await Home.findById(homeId);
     if (!home) return res.redirect('/host/host-home-list');
 
-    // Sirf apna ghar delete kar sakta hai
     if (home.userId.toString() !== req.session.user._id.toString()) {
       return res.redirect('/host/host-home-list');
     }
 
-    // Active bookings check karo
     const activeBookings = await Booking.findOne({
       homeId: homeId,
       status: { $in: ['pending', 'confirmed'] }
     });
 
     if (activeBookings) {
-      // Active bookings hain toh delete mat karo
       const registeredHomes = await Home.find({ userId: req.session.user._id });
       return res.render('host/host-home-list', {
         registeredHomes,
@@ -149,6 +148,12 @@ exports.postDeleteHome = async (req, res, next) => {
         user: req.session.user,
         errorMessage: 'Cannot delete — this home has active bookings!'
       });
+    }
+
+    // Cloudinary se image delete karo
+    if (home.photo) {
+      const publicId = home.photo.split('/').pop().split('.')[0];
+      await cloudinary.uploader.destroy(`airbnb-clone/${publicId}`);
     }
 
     await Home.findByIdAndDelete(homeId);
