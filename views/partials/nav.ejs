@@ -218,11 +218,36 @@
       </div>
 
       <!-- Burger Button -->
-      <button class="burger-btn" id="burgerBtn" aria-label="Toggle menu" aria-expanded="false">
-        <div class="burger-line"></div>
-        <div class="burger-line"></div>
-        <div class="burger-line"></div>
-      </button>
+      <button class="burger-btn" id="burgerBtn" aria-label="Toggle menu" aria-expanded="false" style="position:relative;">
+
+  <div class="burger-line"></div>
+  <div class="burger-line"></div>
+  <div class="burger-line"></div>
+
+  <% if ((user.userType === 'host' && locals.pendingCount > 0) ||
+         (user.userType === 'guest' && locals.bookingUpdateCount > 0)) { %>
+
+    <span style="
+      position:absolute;
+      top:-4px;
+      right:-4px;
+      background:red;
+      color:white;
+      font-size:10px;
+      width:16px;
+      height:16px;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:700;
+    ">
+      <%= user.userType === 'host' ? locals.pendingCount : locals.bookingUpdateCount %>
+    </span>
+
+  <% } %>
+
+</button>
 
       <!-- Drawer -->
       <div class="nav-drawer" id="navDrawer">

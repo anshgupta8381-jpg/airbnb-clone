@@ -29,22 +29,39 @@ exports.gethomes= (req,res, next)=>{
 
 exports.getBookings = async (req, res, next) => {
   try {
-    const bookings = await Booking.find({ userId: req.session.user._id })
+
+    // Guest ne bookings page open kar liya
+    // saari unread updates read mark kar do
+    await Booking.updateMany(
+      {
+        userId: req.session.user._id,
+        status: { $in: ['confirmed', 'rejected'] },
+        guestSeen: false
+      },
+      {
+        guestSeen: true
+      }
+    );
+
+    const bookings = await Booking.find({
+      userId: req.session.user._id
+    })
       .populate('homeId')
       .sort({ createdAt: -1 });
 
     res.render('store/bookings', {
-      bookings: bookings,
+      bookings,
       pageTitle: 'My Bookings',
       currentPath: '/bookings',
       isLoggedIn: req.isLoggedIn,
       user: req.session.user
     });
+
   } catch (err) {
     console.log(err);
     res.redirect('/');
   }
-}
+};
 
 exports.getFavouriteList = async (req, res, next) => {
   if (!req.session.user) {

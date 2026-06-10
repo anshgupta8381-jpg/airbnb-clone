@@ -78,7 +78,8 @@ exports.postBooking = async (req, res, next) => {
       checkIn: checkInDate,
       checkOut: checkOutDate,
       totalPrice,
-      status: 'pending'
+      status: 'pending',
+      hostSeen: false
     });
 
     res.redirect(`/booking/confirm/${booking._id}`);
@@ -160,12 +161,29 @@ exports.postCancelBooking = async (req, res, next) => {
 // Host ke pending requests
 exports.getHostRequests = async (req, res, next) => {
   try {
-    // Host ki saari homes ke IDs nikalo
-    const hostHomes = await Home.find({ userId: req.session.user._id });
+
+    // Host ki saari homes
+    const hostHomes = await Home.find({
+      userId: req.session.user._id
+    });
+
     const homeIds = hostHomes.map(home => home._id);
 
-    // Un homes ki saari bookings nikalo
-    const requests = await Booking.find({ homeId: { $in: homeIds } })
+    // Requests dekhte hi unread requests read mark ho jayengi
+    await Booking.updateMany(
+      {
+        homeId: { $in: homeIds },
+        status: 'pending',
+        hostSeen: false
+      },
+      {
+        hostSeen: true
+      }
+    );
+
+    const requests = await Booking.find({
+      homeId: { $in: homeIds }
+    })
       .populate('homeId')
       .populate('userId')
       .sort({ createdAt: -1 });
@@ -177,11 +195,12 @@ exports.getHostRequests = async (req, res, next) => {
       isLoggedIn: req.isLoggedIn,
       user: req.session.user,
     });
+
   } catch (err) {
     console.log(err);
     res.redirect('/');
   }
-}
+};
 
 // Accept booking
 exports.postAcceptBooking = async (req, res, next) => {
@@ -195,6 +214,8 @@ exports.postAcceptBooking = async (req, res, next) => {
     }
 
     booking.status = 'confirmed';
+    booking.guestSeen = false;
+
     await booking.save();
     res.redirect('/host/booking-requests');
   } catch (err) {
@@ -215,6 +236,8 @@ exports.postRejectBooking = async (req, res, next) => {
     }
 
     booking.status = 'rejected';
+    booking.guestSeen = false;
+
     await booking.save();
     res.redirect('/host/booking-requests');
   } catch (err) {

@@ -136,37 +136,57 @@ app.use((req, res, next) => {
 // =======================
 app.use(async (req, res, next) => {
 
-  req.isLoggedIn = req.session?.isLoggedIn || req.isAuthenticated();
+  req.isLoggedIn =
+    req.session?.isLoggedIn || req.isAuthenticated();
 
-  // ================= HOST REQUEST COUNT =================
+  res.locals.pendingCount = 0;
+  res.locals.bookingUpdateCount = 0;
+  res.locals.navNotificationCount = 0;
+
+  // HOST
   if (req.session?.user?.userType === 'host') {
     try {
-      const hostHomes = await Home.find({ userId: req.session.user._id });
+      const hostHomes = await Home.find({
+        userId: req.session.user._id
+      });
+
       const homeIds = hostHomes.map(h => h._id);
 
-      res.locals.pendingCount = await Booking.countDocuments({
-        homeId: { $in: homeIds },
-        status: 'pending'
-      });
-    } catch {
-      res.locals.pendingCount = 0;
+      const pendingCount =
+        await Booking.countDocuments({
+          homeId: { $in: homeIds },
+          status: 'pending'
+        });
+
+      res.locals.pendingCount = pendingCount;
+      res.locals.navNotificationCount = pendingCount;
+
+    } catch (err) {
+      console.log(err);
     }
-  } else {
-    res.locals.pendingCount = 0;
   }
 
-  // ================= GUEST UPDATE COUNT =================
+  // GUEST
   if (req.session?.user?.userType === 'guest') {
     try {
-      res.locals.bookingUpdateCount = await Booking.countDocuments({
-        userId: req.session.user._id,
-        status: { $in: ['confirmed', 'rejected'] }
-      });
-    } catch {
-      res.locals.bookingUpdateCount = 0;
+
+      const bookingUpdateCount =
+        await Booking.countDocuments({
+          userId: req.session.user._id,
+          status: {
+            $in: ['confirmed', 'rejected']
+          }
+        });
+
+      res.locals.bookingUpdateCount =
+        bookingUpdateCount;
+
+      res.locals.navNotificationCount =
+        bookingUpdateCount;
+
+    } catch (err) {
+      console.log(err);
     }
-  } else {
-    res.locals.bookingUpdateCount = 0;
   }
 
   next();
