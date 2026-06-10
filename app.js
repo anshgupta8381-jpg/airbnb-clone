@@ -155,7 +155,8 @@ app.use(async (req, res, next) => {
       const pendingCount =
         await Booking.countDocuments({
           homeId: { $in: homeIds },
-          status: 'pending'
+          status: 'pending',
+          hostSeen: false
         });
 
       res.locals.pendingCount = pendingCount;
@@ -175,7 +176,8 @@ app.use(async (req, res, next) => {
           userId: req.session.user._id,
           status: {
             $in: ['confirmed', 'rejected']
-          }
+          },
+          guestSeen: false
         });
 
       res.locals.bookingUpdateCount =
