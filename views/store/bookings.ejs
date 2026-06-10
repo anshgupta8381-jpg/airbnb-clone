@@ -102,7 +102,7 @@
       <% if(booking.homeId) { %>
         <div class="booking-card">
 
-          <img src="/<%= booking.homeId.photo.replace(/\\/g, '/') %>" alt="<%= booking.homeId.houseName %>" />
+         <img src="<%= booking.homeId.photo %>" alt="<%= booking.homeId.houseName %>" />
 
           <div class="booking-info">
             <h3><%= booking.homeId.houseName %></h3>
