@@ -11,7 +11,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const multer = require('multer');
-const cloudinary = require('cloudinary').v2;
+const cloudinary = require('cloudinary');
 const CloudinaryStorage = require('multer-storage-cloudinary');
 
 const storeRouter = require("./routes/storeRouter");
