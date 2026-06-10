@@ -57,6 +57,9 @@ exports.getHostHomes = (req, res, next) => {
 }
 
 exports.postaddhome = async (req, res, next) => {
+  console.log("POST ADD HOME HIT");
+console.log("BODY:", req.body);
+console.log("FILE:", req.file);
   try {
     console.log("BODY:", req.body);
     console.log("FILE:", req.file);
