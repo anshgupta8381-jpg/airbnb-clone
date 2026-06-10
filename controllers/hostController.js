@@ -98,12 +98,10 @@ exports.postEditHome = (req, res, next) => {
     home.location = location;
     home.description = description;
 
-    if (req.file) {
-      fs.unlink(home.photo, (err) => {
-        if (err) console.log('error while deleting', err);
-      });
-      home.photo = req.file.path;
-    }
+    // ✅ Yeh lagaa
+        if (req.file) {
+          home.photo = req.file.path;
+        }
 
     return home.save();
   }).then((result) => {
