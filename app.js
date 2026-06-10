@@ -1,3 +1,15 @@
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION');
+  console.error(err);
+  console.error(err.stack);
+});
+
+process.on('unhandledRejection', (err) => {
+  console.error('UNHANDLED REJECTION');
+  console.error(err);
+  console.error(err.stack);
+});
+
 require('dotenv').config();
 
 const path = require('path');
@@ -32,14 +44,6 @@ cloudinary.config({
 });
 
 const app = express();
-
-process.on('uncaughtException', (err) => {
-  console.error('UNCAUGHT EXCEPTION:', err);
-});
-
-process.on('unhandledRejection', (err) => {
-  console.error('UNHANDLED REJECTION:', err);
-});
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
@@ -114,27 +118,33 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
-app.use(async (req, res, next) => {
-  req.isLoggedIn = req.session.isLoggedIn || req.isAuthenticated();
-
-  if (req.session.user && req.session.user.userType === 'host') {
-    try {
-      const hostHomes = await Home.find({ userId: req.session.user._id });
-      const homeIds = hostHomes.map(h => h._id);
-      const pendingCount = await Booking.countDocuments({
-        homeId: { $in: homeIds },
-        status: 'pending'
-      });
-      res.locals.pendingCount = pendingCount;
-    } catch (err) {
-      res.locals.pendingCount = 0;
-    }
-  } else {
-    res.locals.pendingCount = 0;
-  }
-
+app.use((req, res, next) => {
+  req.isLoggedIn = req.session?.isLoggedIn || false;
+  res.locals.pendingCount = 0;
   next();
 });
+
+// app.use(async (req, res, next) => {
+//   req.isLoggedIn = req.session.isLoggedIn || req.isAuthenticated();
+
+//   if (req.session.user && req.session.user.userType === 'host') {
+//     try {
+//       const hostHomes = await Home.find({ userId: req.session.user._id });
+//       const homeIds = hostHomes.map(h => h._id);
+//       const pendingCount = await Booking.countDocuments({
+//         homeId: { $in: homeIds },
+//         status: 'pending'
+//       });
+//       res.locals.pendingCount = pendingCount;
+//     } catch (err) {
+//       res.locals.pendingCount = 0;
+//     }
+//   } else {
+//     res.locals.pendingCount = 0;
+//   }
+
+//   next();
+// });
 
 app.use(authRouter);
 app.use(storeRouter);
