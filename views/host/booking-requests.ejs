@@ -104,7 +104,7 @@
     <% requests.forEach(request => { %>
       <div class="request-card">
 
-        <img src="<%= request.homeId.photo %>" alt="<%= request.homeId.houseName %>" />
+        <img src="<%= request.homeId?.photo || '/images/fallback.jpg' %>" alt="<%= request.homeId.houseName %>" />
 
         <div class="request-info">
           <h3><%= request.homeId.houseName %></h3>
