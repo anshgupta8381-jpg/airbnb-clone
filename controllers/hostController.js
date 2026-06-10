@@ -55,21 +55,19 @@ exports.postaddhome = async (req, res, next) => {
   try {
     const { houseName, price, location, description } = req.body;
 
-    if (!req.file) {
+    if (req.fileError || !req.file) {
       return res.render('host/edit-home', {
         pageTitle: 'Add Home',
         currentPath: '/host/add-home',
         editing: false,
         isLoggedIn: req.isLoggedIn,
         user: req.session.user,
-        errorMessage: 'Please upload an image in JPG, JPEG, or PNG format only.'
+        errorMessage: req.fileError || 'Please upload an image in JPG, JPEG, or PNG format only.'
       });
     }
 
     const home = new Home({
-      houseName,
-      price,
-      location,
+      houseName, price, location,
       photo: req.file.path,
       description,
       userId: req.session.user._id
